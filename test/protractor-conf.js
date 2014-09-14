@@ -1,5 +1,4 @@
 exports.config = {
-  allScriptsTimeout: 11000,
 
   specs: [
     'e2e/features/*.feature'
@@ -13,7 +12,4 @@ exports.config = {
 
   framework: 'cucumber',
 
-  jasmineNodeOpts: {
-    defaultTimeoutInterval: 30000
-  }
 };
