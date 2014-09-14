@@ -1,0 +1,15 @@
+{
+  "name": "st-protractor-cucumber",
+  "description": "Just a sample project to show how to set up Protractor with Cucumber",
+  "version": "0.1.0",
+  "homepage": "https://github.com/angular/angular-seed",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "angular": "git://github.com/angular/bower-angular#1.2.17",
+    "angular-route": "git://github.com/angular/bower-angular-route#1.2.17",
+    "angular-loader": "git://github.com/angular/bower-angular-loader.git#1.2.17",
+    "angular-mocks": "git://github.com/angular/bower-angular-mocks#1.2.17",
+    "html5-boilerplate": "git://github.com/h5bp/html5-boilerplate.git#4.3.0"
+  }
+}
