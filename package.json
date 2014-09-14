@@ -3,6 +3,7 @@
   "private": false,
   "version": "0.1.0",
   "description": "Just a sample project to show how to set up Protractor with Cucumber",
+  "repository": "https://github.com/plopcas/st-protractor-cucumber",
   "license": "MIT",
   "devDependencies": {
     "protractor": "~0.20.1",
