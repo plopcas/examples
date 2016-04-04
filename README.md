@@ -8,5 +8,3 @@ npm start
 
 npm run protractor
 ```
-
-For more like this, please visit my blog here [Software Takeaway](http://softwaretakeaway.wordpress.com/).
