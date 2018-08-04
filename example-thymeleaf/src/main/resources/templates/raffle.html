@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en" th:replace="fragments/header :: header"/>
+<body class="framed">
+
+<h1>ElasticRaffle</h1>
+
+<h2><span th:text="#{raffle.description}"/></h2>
+
+<div lang="en" th:replace="fragments/add-players :: add-players"/>
+
+<div lang="en" th:replace="fragments/list-players :: list-players"/>
+
+<div lang="en" th:replace="fragments/action-bar :: action-bar"/>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div id="list-of-players" th:fragment="list-players" class="row buffered" th:each="p,status : ${listOfPlayers}">
+    <div class="col-xs-4">
+        <i class="fa fa-user framed" aria-hidden="true"></i><span class="align-middle" th:text="${p.name}"></span>
+    </div>
+    <div class="col-xs-4">
+        <form id="add-players-form" action="#" th:action="@{/delete/} + ${status.index}" method="post">
+            <button th:id="'delete-btn-' + ${status.index}" class="btn btn-danger" type="submit" th:text="#{raffle.delete.button}"/>
+        </form>
+    </div>
+</div>
+
+</html>

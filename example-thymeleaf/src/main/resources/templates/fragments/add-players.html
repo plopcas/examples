@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div class="row" th:fragment="add-players">
+    <form id="add-players-form" action="#" th:action="@{/}" th:object="${player}" method="post">
+        <div class="col-xs-4">
+            <input type="text" class="form-control" th:field="*{name}"/>
+            <div id="error-msg-name" class="alert alert-danger alert-dismissible" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+        </div>
+        <div class="col-xs-4">
+            <button id="add-btn" class="btn btn-info" type="submit" th:text="#{raffle.add-player.button}"/>
+        </div>
+    </form>
+</div>
+</html>

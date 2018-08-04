@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div id="action-bar" th:fragment="action-bar" class="row buffered">
+    <div class="col-xs-4">
+        <a class="btn btn-success" role="button" th:href="@{/play}"><span th:text="#{raffle.play.button}"/></a>
+    </div>
+    <div class="col-xs-4">
+        <form id="clear-players-form" action="#" th:action="@{/clear}" method="post">
+            <button id="clear-btn" class="btn btn-danger" type="submit" th:text="#{raffle.clear.button}"/>
+        </form>
+    </div>
+</div>
+
+</html>

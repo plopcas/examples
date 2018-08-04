@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en" th:replace="fragments/header :: header"/>
+<body class="framed">
+
+<h1>ElasticRaffle</h1>
+
+<h2><span th:text="#{play.description}"/></h2>
+
+<h2 lang="en" th:replace="fragments/winner-banner :: winner-banner"/>
+
+<div>
+    <a class="btn btn-info" role="button" th:href="@{/}"><span th:text="#{play.back.button}"/></a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<recipe>
+	<title>Victoria Sponge</title>
+	<description>
+		This simplest of sponge cake recipes has a fresh berry and whipped
+		cream filling that takes the classic Victoria sponge to new heights.
+		<image location="in/victoria_sponge.png" />
+	</description>
+	<ingredients>
+		<ingredient>225g/8oz butter or margarine</ingredient>
+		<ingredient>225g/8oz caster sugar</ingredient>
+		<ingredient>4 medium eggs</ingredient>
+		<ingredient>2 tsp vanilla extract</ingredient>
+		<ingredient>225g/8oz self</ingredient>
+		<ingredient>raising flour</ingredient>
+		<ingredient>milk, to loosen</ingredient>
+	</ingredients>
+	<preparation>
+		<step order="1">Preheat the oven to 180C/350F/Gas 4.</step>
+		<step order="2">Grease and line 2 x 18cm/7in cake tins with baking
+			paper.
+		</step>
+		<step order="3">Cream the butter and the sugar together in a bowl
+			until pale and fluffy.
+		</step>
+		<step order="4">Beat in the eggs, a little at a time, and stir in the
+			vanilla extract.
+		</step>
+		<step order="5">Fold in the flour using a large metal spoon, adding a
+			little extra milk if necessary, to create a batter with a soft
+			dropping consistency.
+		</step>
+		<step order="6">Divide the mixture between the cake tins and gently
+			spread out with a spatula.
+		</step>
+		<step order="7">Bake for 20-25 minutes, or until golden-brown on top
+			and a skewer inserted into the middle comes out clean.
+		</step>
+		<step order="8">Remove from the oven and set aside for 5 minutes,
+			then remove from the tin and peel off the paper. Place onto a wire
+			rack.
+		</step>
+		<step order="9">Sandwich the cakes together with jam, lemon curd or
+			whipped cream and berries or just enjoy on its own.
+		</step>
+	</preparation>
+</recipe>

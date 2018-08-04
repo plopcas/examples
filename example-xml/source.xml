@@ -1,0 +1,25 @@
+<modelingOutput>
+    <listOfTopics>
+        <topic id="1">
+            <token id="354">wish</token>
+        </topic>
+    </listOfTopics>
+    <rankedDocs>
+        <topic id="1">
+            <documents>
+                <document id="1" numWords="0"/>
+                <document id="2" numWords="1"/>
+                <document id="3" numWords="2"/>
+            </documents>
+        </topic>
+    </rankedDocs>
+    <listOfDocs>
+        <documents>
+            <document id="1">
+                <topic id="1" percentage="4.790644689978203%"/>
+                <topic id="2" percentage="11.427632949428334%"/>
+                <topic id="3" percentage="17.86913349249596%"/>
+            </document>
+        </documents>
+    </listOfDocs>
+</modelingOutput>
