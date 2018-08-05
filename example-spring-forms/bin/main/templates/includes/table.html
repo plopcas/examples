@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+  <div th:fragment="table (modelAs)">
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Id</th>
+          <th scope="col">Text</th>
+          <th scope="col">Flag</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="modelA, idx : ${modelAs}">
+          <th scope="row">
+            <span th:text="${idx.count}"></span>
+          </th>
+          <td>
+            <span th:text="${modelA.id}"></span>
+          </td>
+          <td>
+            <span th:text="${modelA.textA}"></span>
+          </td>
+          <td>
+            <span th:text="${modelA.flagA}"></span>
+          </td>
+          <td>
+            <a class="btn btn-primary" th:href="|/model-a-s/${modelA.id}|">Edit</a>
+            <a class="btn btn-danger" th:href="|/model-a-s/${modelA.id}/delete|" data-toggle="confirmation">Delete</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+</body>
+
+</html>
