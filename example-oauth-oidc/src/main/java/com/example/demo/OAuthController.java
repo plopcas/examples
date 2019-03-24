@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,15 +59,14 @@ public class OAuthController {
         return new ModelAndView("redirect:" + uriComponents.toString());
     }
 
-    @GetMapping("login-implicit-form-post")
-    public ModelAndView getLoginCodeFormPost(ModelMap model) {
+    @GetMapping("login-implicit-fragment")
+    public ModelAndView getLoginCodeFragment(ModelMap model) {
         System.out.println("Login called");
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme("https")
                 .host(domain)
                 .path("authorize")
-                .queryParam("response_type", "id_token")
-                .queryParam("response_mode", "form_post")
+                .queryParam("response_type", "id_token token")
                 .queryParam("scope", "openid")
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", "http://localhost:8080/callback")
@@ -76,14 +76,15 @@ public class OAuthController {
         return new ModelAndView("redirect:" + uriComponents.toString());
     }
 
-    @GetMapping("login-implicit-fragment")
-    public ModelAndView getLoginCodeFragment(ModelMap model) {
+    @GetMapping("login-implicit-form-post")
+    public ModelAndView getLoginCodeFormPost(ModelMap model) {
         System.out.println("Login called");
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme("https")
                 .host(domain)
                 .path("authorize")
-                .queryParam("response_type", "id_token")
+                .queryParam("response_type", "id_token token")
+                .queryParam("response_mode", "form_post")
                 .queryParam("scope", "openid")
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", "http://localhost:8080/callback")
@@ -136,6 +137,23 @@ public class OAuthController {
         return new ModelAndView("redirect:" + uriComponents.toString());
     }
 
+    @GetMapping("login-code-offline-access")
+    public ModelAndView getLoginCodeOfflineAccess(ModelMap model) {
+        System.out.println("Login offline access called");
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("authorize")
+                .queryParam("response_type", "code")
+                .queryParam("scope", "openid offline_access read:foo")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", "http://localhost:8080/callback")
+                .queryParam("audience", "https://test1-api")
+                .build();
+        System.out.println("Redirecting to Authorization Server: " + uriComponents.toString());
+        return new ModelAndView("redirect:" + uriComponents.toString());
+    }
+
     private String createCodeVerifier() {
         SecureRandom sr = new SecureRandom();
         byte[] code = new byte[32];
@@ -161,64 +179,23 @@ public class OAuthController {
 
             String code = request.getParameter("code");
 
-            UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                    .scheme("https")
-                    .host(domain)
-                    .path("oauth/token")
-                    .build();
+            String response = exchangeCode(code);
 
-            HttpHeaders requestHeaders = new HttpHeaders();
-            requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-            map.add("client_id", clientId);
-            map.add("client_secret", clientSecret);
-            map.add("code", code);
-            map.add("grant_type", "authorization_code");
-            map.add("redirect_uri", "http://localhost:8080/callback"); // Must match the one when called /authorize
-
-            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(map, requestHeaders);
-
-            System.out.println("Exchanging code: " + uriComponents.toString());
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, requestEntity, String.class);
-            System.out.println("Response" + responseEntity.getBody());
-
-            HashMap<String, String> tokens = new ObjectMapper().readValue(responseEntity.getBody(), HashMap.class);
+            HashMap<String, String> tokens = new ObjectMapper().readValue(response, HashMap.class);
             session.setAttribute("tokens", tokens);
+
         } else if (session.getAttribute("code_verifier") != null) {
+
             String code = request.getParameter("code");
+            String codeVerifier = (String) session.getAttribute("code_verifier");
 
-            UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                    .scheme("https")
-                    .host(domain)
-                    .path("oauth/token")
-                    .build();
+            String response = exchangeCodePkce(code, codeVerifier);
 
-            // It also works with APPLICATION_FORM_URLENCODED and passing a map
-            HttpHeaders requestHeaders = new HttpHeaders();
-            requestHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("client_id", clientId);
-            map.put("client_secret", clientSecret);
-            map.put("code", code);
-            map.put("grant_type", "authorization_code");
-            map.put("redirect_uri", "http://localhost:8080/callback");
-            map.put("code_verifier", (String) session.getAttribute("code_verifier"));
-
-            ObjectMapper mapper = new ObjectMapper();
-
-            String json = mapper.writer().writeValueAsString(map);
-
-            HttpEntity<String> requestEntity = new HttpEntity<String>(json, requestHeaders);
-
-            System.out.println("Exchanging code: " + uriComponents.toString());
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, requestEntity, String.class);
-            System.out.println("Response" + responseEntity.getBody());
-
-            HashMap<String, String> tokens = new ObjectMapper().readValue(responseEntity.getBody(), HashMap.class);
+            HashMap<String, String> tokens = new ObjectMapper().readValue(response, HashMap.class);
             session.setAttribute("tokens", tokens);
+
         } else {
+
             // It must be implicit - fragment, therefore nothing gets sent to the server
 
         }
@@ -226,13 +203,78 @@ public class OAuthController {
         return new ModelAndView("redirect:/welcome", model);
     }
 
-    @PostMapping("callback")
-    private ModelAndView postCallback(@RequestBody MultiValueMap<String, String> body, HttpSession session, HttpServletRequest request, ModelMap model) {
-        System.out.println("Callback called POST: " + request.getRequestURL());
+    private String exchangeCode(String code) {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("oauth/token")
+                .build();
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("id_token", body.get("id_token").get(0));
-        session.setAttribute("tokens", tokens);
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+        map.add("client_id", clientId);
+        map.add("client_secret", clientSecret);
+        map.add("code", code);
+        map.add("grant_type", "authorization_code");
+        map.add("redirect_uri", "http://localhost:8080/callback"); // Must match the one when called /authorize
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(map, requestHeaders);
+
+        System.out.println("Exchanging code: " + uriComponents.toString());
+        ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, requestEntity, String.class);
+        System.out.println("Response " + responseEntity.getBody());
+
+        return responseEntity.getBody();
+    }
+
+    private String exchangeCodePkce(String code, String codeVerifier) throws JsonProcessingException {
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("oauth/token")
+                .build();
+
+        // It also works with APPLICATION_FORM_URLENCODED and passing a map
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("client_id", clientId);
+        map.put("client_secret", clientSecret);
+        map.put("code", code);
+        map.put("grant_type", "authorization_code");
+        map.put("redirect_uri", "http://localhost:8080/callback");
+        map.put("code_verifier", codeVerifier);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String json = mapper.writer().writeValueAsString(map);
+
+        HttpEntity<String> requestEntity = new HttpEntity<String>(json, requestHeaders);
+
+        System.out.println("Exchanging code with PKCE: " + uriComponents.toString());
+        ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, requestEntity, String.class);
+        System.out.println("Response " + responseEntity.getBody());
+
+        return responseEntity.getBody();
+    }
+
+    @PostMapping("callback")
+    public ModelAndView postCallback(@RequestBody MultiValueMap<String, String> body, HttpSession session, HttpServletRequest request, ModelMap model) {
+        System.out.println("Callback called POST: " + request.getRequestURL());
+        System.out.println("Request body: " + body);
+
+        if (!body.containsKey("error")) {
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("id_token", body.get("id_token").get(0));
+            tokens.put("access_token", body.get("access_token") == null ? null : body.get("access_token").get(0));
+            session.setAttribute("tokens", tokens);
+        } else {
+            model.addAttribute("errorDescription", body.get("error_description"));
+            return new ModelAndView("error-custom", model);
+        }
 
         return new ModelAndView("redirect:/welcome", model);
     }
@@ -270,13 +312,91 @@ public class OAuthController {
             HashMap<String, String> idTokenClaims = new ObjectMapper().readValue(decodedIdTokenPayload, HashMap.class);
 
             model.addAttribute("name", idTokenClaims.get("sub"));
-            model.addAttribute("apiResult", getProtected(tokens));
+            model.addAttribute("accessToken", tokens.get("access_token"));
+            model.addAttribute("refreshToken", tokens.get("refresh_token"));
+            model.addAttribute("apiResult", callProtectedAPI(tokens));
         }
 
         return new ModelAndView("welcome", model);
     }
 
-    private String getProtected(HashMap<String, String> tokens) {
+    @GetMapping("authoriseApi")
+    public ModelAndView getAuthoriseApi() {
+        System.out.println("Authorise API called");
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("authorize")
+                .queryParam("response_type", "token id_token")
+                .queryParam("response_mode", "form_post")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", "http://localhost:8080/callback")
+                .queryParam("scope", "read:foo")
+                .queryParam("state", "my-custom-state")
+                .queryParam("nonce", RandomStringUtils.randomAlphanumeric(10))
+                .queryParam("audience", "https://test1-api")
+                .build();
+
+        return new ModelAndView("redirect:" + uriComponents.toString());
+    }
+
+    @GetMapping("authoriseApiSilent")
+    public ModelAndView getAuthoriseApiSilent() {
+        System.out.println("Authorise API Silent called");
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("authorize")
+                .queryParam("response_type", "token id_token")
+                .queryParam("response_mode", "form_post")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", "http://localhost:8080/callback")
+                .queryParam("scope", "read:foo")
+                .queryParam("state", "my-custom-state")
+                .queryParam("nonce", RandomStringUtils.randomAlphanumeric(10))
+                .queryParam("audience", "https://test1-api")
+                .queryParam("prompt", "none")
+                .build();
+
+        return new ModelAndView("redirect:" + uriComponents.toString());
+    }
+
+    @GetMapping("authoriseApiRefreshToken")
+    public ModelAndView getAuthoriseApiRefreshToken(HttpSession session) throws IOException {
+        System.out.println("Authorise API Refresh Token called");
+
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(domain)
+                .path("oauth/token")
+                .build();
+
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+        map.add("grant_type", "refresh_token");
+        map.add("client_id", clientId);
+        map.add("client_secret", clientSecret);
+        map.add("refresh_token", ((HashMap<String, String>) session.getAttribute("tokens")).get("refresh_token"));
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(map, requestHeaders);
+
+        System.out.println("Using refresh token: " + uriComponents.toString());
+        ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.POST, requestEntity, String.class);
+        System.out.println("Response " + responseEntity.getBody());
+
+        HashMap<String, String> response = new ObjectMapper().readValue(responseEntity.getBody(), HashMap.class);
+        HashMap<String, String> tokens = (HashMap<String, String>) session.getAttribute("tokens");
+        tokens.put("access_token", response.get("access_token"));
+        session.setAttribute("tokens", tokens);
+
+        return new ModelAndView("redirect:/welcome");
+    }
+
+    private String callProtectedAPI(HashMap<String, String> tokens) {
         String response = null;
         if (tokens != null && tokens.size() > 0) {
 
@@ -296,7 +416,7 @@ public class OAuthController {
             try {
                 System.out.println("Calling API: " + uriComponents.toString());
                 ResponseEntity<String> responseEntity = restTemplate.exchange(uriComponents.toString(), HttpMethod.GET, requestEntity, String.class);
-                System.out.println("Response" + responseEntity.getBody());
+                System.out.println("Response " + responseEntity.getBody());
                 response = responseEntity.getBody();
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());

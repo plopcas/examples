@@ -2,6 +2,9 @@
 <body>
 Hello <span th:text="${name}">World</span>
 <a href="logout">Logout</a>
+<p>Access Token <span th:text="${accessToken}"></span></p>
 <p>API returned <span th:text="${apiResult}"></span></p>
+<p th:if="${apiResult == 'Unauthorized!'}"><a href="authoriseApiSilent">Authorise API</a> (doesn't matter if silent or not)</p>
+<p th:if="${apiResult == 'Unauthorized!' && refreshToken != null}"><a href="authoriseApiRefreshToken">Refresh Token</a></p>
 </body>
 </html>
